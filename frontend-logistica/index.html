@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Logística - Acceso</title>
+    <style>
+        /* Estilos generales limpios y adaptables */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .contenedor-principal {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        /* Botones grandes y cómodos para celular */
+        .btn-opcion {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 8px;
+            box-sizing: border-box;
+            transition: background 0.2s;
+        }
+        .btn-proveedor {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-proveedor:hover {
+            background-color: #0056b3;
+        }
+        .btn-bodega {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-bodega:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="contenedor-principal">
+        <h2>Control Logístico</h2>
+        <p>Selecciona tu perfil para continuar</p>
+
+        <!-- Botón para el Proveedor (Lo llevará al formulario de envío) -->
+        <a href="recepcion.html" class="btn-opcion btn-proveedor">Soy Proveedor</a>
+
+        <!-- Botón para el Manejo de Bodega (Lo llevará al Login de tu hermana) -->
+        <a href="login.html" class="btn-opcion btn-bodega">Manejo de Bodega</a>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Proveedor</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .formulario-contenedor { width: 100%; max-width: 400px; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; margin-top: 0; }
+        label { font-weight: bold; display: block; margin-top: 15px; font-size: 14px; color: #555; }
+        input { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 15px; }
+        button { width: 100%; padding: 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; margin-top: 25px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        
+        .volver { display: block; text-align: center; margin-top: 20px; color: #666; text-decoration: none; font-size: 14px; }
+        
+        /* Estilos para el mensaje de éxito */
+        .pantalla-exito { display: none; text-align: center; padding: 40px 10px; }
+        .icono-check { font-size: 50px; color: #28a745; margin-bottom: 15px; }
+        .pantalla-exito h3 { color: #28a745; margin: 0 0 10px 0; }
+        .pantalla-exito p { color: #666; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div class="formulario-contenedor" id="tarjetaPrincipal">
+        
+        <!-- Formulario de Registro -->
+        <div id="seccionFormulario">
+            <h2>Enviar Cargamento</h2>
+            <form id="formRecepcion">
+                <label for="fecha">Fecha de Envío</label>
+                <input type="date" id="fecha" required>
+
+                <label for="proveedor">Nombre del Proveedor</label>
+                <input type="text" id="proveedor" placeholder="Ej: Proveedores S.A." required>
+
+                <label for="toneladas">Cantidad de Toneladas</label>
+                <small style="color: #666; font-size: 12px; display: block; margin-bottom: 8px;">* Usa el punto o la coma de tu teclado para los decimales</small>
+                <input type="number" step="0.01" id="toneladas" placeholder="Ej: 15.5" required>
+
+                <label for="nombreConductor">Nombre del Conductor</label>
+                <input type="text" id="nombreConductor" placeholder="Ej: Juan Pérez" required>
+
+                <label for="numeroConductor">Número del Conductor</label>
+                <input type="tel" id="numeroConductor" placeholder="Ej: 3001234567" required>
+
+                <label for="placa">Placa del Vehículo</label>
+                <input type="text" id="placa" maxlength="6" placeholder="Ej: ABC123" required>
+
+                <button type="submit">Guardar Envío</button>    
+            </form>
+            <a href="index.html" class="volver">← Cancelar y volver al inicio</a>
+        </div>
+
+        <!-- Pantalla de Éxito (Oculta por defecto) -->
+        <div id="seccionExito" class="pantalla-exito">
+            <div class="icono-check">✅</div>
+            <h3>¡Registro Exitoso!</h3>
+            <p>La información ha sido enviada al área de manejo de bodega.</p>
+            <p style="font-size: 12px; margin-top: 20px;">Redirigiendo al inicio...</p>
+        </div>
+
+    </div>
+<script>
+        document.getElementById('formRecepcion').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Evita que la página recargue de golpe
+
+            // 1. Recolectar los datos exactos que escribió el proveedor
+            const datosRecepcion = {
+                fechaEnvio: document.getElementById('fecha').value,
+                nombreProveedor: document.getElementById('proveedor').value,
+                toneladasEnviadas: parseFloat(document.getElementById('toneladas').value), // Nombre corregido
+                nombreConductor: document.getElementById('nombreConductor').value,
+                numeroConductor: document.getElementById('numeroConductor').value,
+                placaConductor: document.getElementById('placa').value
+            };
+
+            try {
+                // 2. Enviar los datos al Backend (Ajusta el puerto 8080 si usas otro)
+                const respuesta = await fetch('http://localhost:8080/api/recepciones', {
+                    method: 'POST', // POST significa "Crear un nuevo registro"
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(datosRecepcion) // Convertimos los datos a formato JSON
+                });
+
+                // 3. Validar si el servidor Java guardó todo correctamente
+                if (respuesta.ok) {
+                    // Ocultar formulario y mostrar éxito
+                    document.getElementById('seccionFormulario').style.display = 'none';
+                    document.getElementById('seccionExito').style.display = 'block';
+
+                    // Esperar 3 segundos y redirigir
+                    setTimeout(function() {
+                        window.location.href = 'index.html';
+                    }, 3000);
+                } else {
+                    // Si el servidor responde con error (ej. faltan datos)
+                    const error = await respuesta.text();
+                    alert('Error del servidor: ' + error);
+                }
+            } catch (error) {
+                // Si el servidor Java está apagado o hay un problema de red
+                console.error('Error de conexión:', error);
+                alert('No se pudo conectar con el servidor. Verifica que Spring Boot esté encendido.');
+            }
+        });
+    </script>
+
+</body>
+</html>

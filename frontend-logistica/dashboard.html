@@ -1,0 +1,448 @@
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Panel - Manejo de Bodega</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 0; background-color: #f4f4f9; display: flex; height: 100vh; overflow: hidden; }
+            .sidebar { width: 250px; background-color: #343a40; color: white; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; }
+            .sidebar h2 { font-size: 18px; text-align: center; margin-bottom: 30px; }
+            .sidebar a { color: #cfd8dc; text-decoration: none; padding: 10px 15px; margin: 5px 0; border-radius: 4px; display: block; cursor: pointer; }
+            .sidebar a:hover, .sidebar a.active { background-color: #495057; color: white; }
+            .info-bodega { background-color: #212529; padding: 15px; border-radius: 6px; font-size: 14px; text-align: center; margin-bottom: 15px; }
+            .info-bodega span { font-size: 20px; font-weight: bold; color: #28a745; display: block; margin-top: 5px; }
+            .btn-logout { background-color: #dc3545; color: white; text-align: center; display: block; text-decoration: none; padding: 10px; border-radius: 4px; }
+            
+            .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+            .vista-tabla { display: none; }
+            .vista-tabla.activa { display: block; }
+            
+            table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); min-width: 800px; }
+            th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; font-size: 13px; }
+            th { background-color: #007bff; color: white; }
+            .table-responsive { overflow-x: auto; }
+            
+            .btn-modificar { background-color: #ffc107; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+            .btn-agregar { background-color: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-bottom: 10px; }
+            
+            /* Estilos del Modal Paso a Paso */
+            .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; }
+            .modal-card { background: white; padding: 25px; border-radius: 8px; width: 90%; max-width: 350px; text-align: center; }
+            .paso-container { display: none; text-align: left; }
+            .paso-container.activo { display: block; }
+            .paso-container label { font-weight: bold; font-size: 14px; margin-bottom: 5px; display: block; }
+            .paso-container input { width: 100%; padding: 10px; margin-bottom: 20px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+            .paso-container input:disabled { background-color: #e9ecef; }
+            .modal-botones { display: flex; gap: 10px; }
+            .modal-botones button { flex: 1; padding: 10px; border: none; border-radius: 4px; font-weight: bold; color: white; cursor: pointer; }
+            .btn-sig { background-color: #007bff; }
+            .btn-guardar { background-color: #28a745; display: none; }
+            .btn-cancelar { background-color: #6c757d; }
+            .mensaje-exito { display: none; color: #28a745; font-weight: bold; padding: 20px; }
+            .step-indicador { font-size: 12px; color: #007bff; font-weight: bold; margin-bottom: 15px; }
+        </style>
+    </head>
+    <body>
+
+        <div class="sidebar">
+            <div>
+                <h2>Manejo de Bodega</h2>
+                <a id="nav-rec" class="active" onclick="cambiarVista('recepcion')">📦 Recepciones</a>
+                <a id="nav-des" onclick="cambiarVista('despacho')">🚚 Despachos</a>
+            </div>
+            <div>
+                <div class="info-bodega">Toneladas en Bodega:<span id="totalBodega">10.00 Ton</span></div>
+                <a href="index.html" class="btn-logout">Cerrar Sesión</a>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- VISTA DE RECEPCIONES -->
+            <div id="vista-recepcion" class="vista-tabla activa">
+                <h1>Gestión de Recepciones</h1>
+                <div class="table-responsive">
+                    <table>
+                        <tr><th>Serial</th><th>Fecha</th><th>Proveedor</th><th>Conductor</th><th>N° Cond.</th><th>Placa</th><th>Toneladas</th><th>Acciones</th></tr>
+                        <tr>
+                            <td id="r-serial">REC-001</td><td id="r-fecha">2026-06-01</td><td id="r-prov">Proveedores S.A.</td>
+                            <td id="r-cond">Juan Pérez</td><td id="r-num">3001234567</td><td id="r-placa">ABC123</td><td id="r-ton">15.00</td>
+                            <td><button class="btn-modificar" onclick="iniciarWizard('recepcion', true)">Modificar</button></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- VISTA DE DESPACHOS -->
+            <div id="vista-despacho" class="vista-tabla">
+                <h1>Gestión de Despachos</h1>
+                    <button class="btn-agregar" onclick="window.location.href='despacho.html'">+ Agregar Despacho</button>            <div class="table-responsive">
+                    <table>
+                        <tr><th>Serial</th><th>Fecha</th><th>Cliente</th><th>Chofer</th><th>Placa</th><th>Ciudad</th><th>Lote</th><th>Toneladas</th><th>Acciones</th></tr>
+                        <tr>
+                            <td id="d-serial">DES-001</td><td id="d-fecha">2026-06-02</td><td id="d-cli">Cliente X</td>
+                            <td id="d-cond">Pedro Gómez</td><td id="d-placa">XYZ987</td><td id="d-ciu">Medellín</td><td id="d-lote">L-99</td><td id="d-ton">5.00</td>
+                            <td><button class="btn-modificar" onclick="iniciarWizard('despacho', true)">Modificar</button></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL WIZARD DINÁMICO -->
+        <div class="modal-overlay" id="modalWizard">
+            <div class="modal-card">
+                <div id="formPasos">
+                    <h3 id="tituloWizard">Asistente</h3>
+                    <div class="step-indicador" id="textoPaso">Paso 1</div>
+
+                    <div class="paso-container" id="paso-1"><label id="lbl-1">Serial</label><input type="text" id="inp-1" disabled></div>
+                    <div class="paso-container" id="paso-2"><label id="lbl-2">Fecha</label><input type="date" id="inp-2"></div>
+                    <div class="paso-container" id="paso-3"><label id="lbl-3">Dato 3</label><input type="text" id="inp-3"></div>
+                    <div class="paso-container" id="paso-4"><label id="lbl-4">Dato 4</label><input type="text" id="inp-4"></div>
+                    <div class="paso-container" id="paso-5"><label id="lbl-5">Dato 5</label><input type="text" id="inp-5"></div>
+                    <div class="paso-container" id="paso-6"><label id="lbl-6">Dato 6</label><input type="text" id="inp-6"></div>
+                    <div class="paso-container" id="paso-7"><label id="lbl-7">Dato 7</label><input type="text" id="inp-7"></div>
+                    <div class="paso-container" id="paso-8"><label id="lbl-8">Toneladas</label><input type="number" step="0.01" id="inp-8"></div>
+                    
+                    <div class="modal-botones">
+                        <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+                        <button class="btn-sig" id="btnSig" onclick="siguientePaso()">Siguiente</button>
+                        <button class="btn-guardar" id="btnGuar" onclick="guardarDatos()">Guardar</button>
+                    </div>
+                </div>
+                <div id="mensajeExito" class="mensaje-exito">✅ Proceso completado con éxito.</div>
+            </div>
+        </div>
+
+        <script>
+            let pasoActual = 1;
+            let totalPasos = 7;
+            let modoActual = ''; 
+            let esModificacion = false;
+
+            function cambiarVista(vista) {
+                document.getElementById('vista-recepcion').classList.remove('activa');
+                document.getElementById('vista-despacho').classList.remove('activa');
+                document.getElementById('nav-rec').classList.remove('active');
+                document.getElementById('nav-des').classList.remove('active');
+                
+                if(vista === 'recepcion') {
+                    document.getElementById('vista-recepcion').classList.add('activa');
+                    document.getElementById('nav-rec').classList.add('active');
+                } else {
+                    document.getElementById('vista-despacho').classList.add('activa');
+                    document.getElementById('nav-des').classList.add('active');
+                }
+            }
+
+            // Función matemática que calcula el siguiente serial (Ej: DES-001 -> DES-002)
+            function generarSiguienteSerial(modo) {
+                let tablaId = modo === 'recepcion' ? 'vista-recepcion' : 'vista-despacho';
+                let filas = document.querySelectorAll(`#${tablaId} table tr`);
+                
+                if (filas.length <= 1) {
+                    return modo === 'recepcion' ? 'REC-001' : 'DES-001';
+                }
+
+                let ultimaFila = filas[filas.length - 1];
+                let ultimoSerial = ultimaFila.cells[0].innerText; 
+                
+                let partes = ultimoSerial.split('-');
+                if(partes.length < 2) return modo === 'recepcion' ? 'REC-001' : 'DES-001';
+
+                let prefijo = partes[0];
+                let numeroActual = parseInt(partes[1]); 
+                let siguienteNumero = numeroActual + 1;
+
+                return `${prefijo}-${siguienteNumero.toString().padStart(3, '0')}`;
+            }
+
+            function iniciarWizard(modo, modificando) {
+                modoActual = modo;
+                esModificacion = modificando;
+                pasoActual = 1;
+                document.getElementById('formPasos').style.display = 'block';
+                document.getElementById('mensajeExito').style.display = 'none';
+
+                if(modo === 'recepcion') {
+                    totalPasos = 7;
+                    document.getElementById('tituloWizard').innerText = modificando ? "Modificar Recepción" : "Agregar Recepción";
+                    document.getElementById('lbl-3').innerText = "Proveedor";
+                    document.getElementById('lbl-4').innerText = "Nombre Conductor";
+                    document.getElementById('lbl-5').innerText = "Número Conductor";
+                    document.getElementById('lbl-6').innerText = "Placa";
+                    document.getElementById('lbl-7').innerText = "Toneladas / Bultos";
+                    
+                    if(modificando) {
+                        document.getElementById('inp-1').value = document.getElementById('r-serial').innerText;
+                        document.getElementById('inp-2').value = document.getElementById('r-fecha').innerText;
+                        document.getElementById('inp-3').value = document.getElementById('r-prov').innerText;
+                        document.getElementById('inp-4').value = document.getElementById('r-cond').innerText;
+                        document.getElementById('inp-5').value = document.getElementById('r-num').innerText;
+                        document.getElementById('inp-6').value = document.getElementById('r-placa').innerText;
+                        document.getElementById('inp-7').value = document.getElementById('r-ton').innerText;
+                    }
+                } else {
+                    totalPasos = 8;
+                    document.getElementById('tituloWizard').innerText = modificando ? "Modificar Despacho" : "Agregar Despacho";
+                    document.getElementById('lbl-3').innerText = "Cliente Destino";
+                    document.getElementById('lbl-4').innerText = "Chofer";
+                    document.getElementById('lbl-5').innerText = "Placa";
+                    document.getElementById('lbl-6').innerText = "Ciudad Destino";
+                    document.getElementById('lbl-7').innerText = "Lote";
+                    
+                    if(modificando) {
+                        document.getElementById('inp-1').value = document.getElementById('d-serial').innerText;
+                        document.getElementById('inp-2').value = document.getElementById('d-fecha').innerText;
+                        document.getElementById('inp-3').value = document.getElementById('d-cli').innerText;
+                        document.getElementById('inp-4').value = document.getElementById('d-cond').innerText;
+                        document.getElementById('inp-5').value = document.getElementById('d-placa').innerText;
+                        document.getElementById('inp-6').value = document.getElementById('d-ciu').innerText;
+                        document.getElementById('inp-7').value = document.getElementById('d-lote').innerText;
+                        document.getElementById('inp-8').value = document.getElementById('d-ton').innerText;
+                    } else {
+                        for(let i=2; i<=8; i++) document.getElementById(`inp-${i}`).value = '';
+                        
+                        document.getElementById('inp-1').value = generarSiguienteSerial('despacho');
+                        document.getElementById('inp-1').disabled = true;
+                    }
+                }
+
+                document.getElementById('modalWizard').style.display = 'flex';
+                actualizarVistaModal();
+            }
+
+            function siguientePaso() { 
+                if(pasoActual < totalPasos) { pasoActual++; actualizarVistaModal(); } 
+            }
+
+            function actualizarVistaModal() {
+                for(let i=1; i<=8; i++) document.getElementById(`paso-${i}`).classList.remove('activo');
+                document.getElementById(`paso-${pasoActual}`).classList.add('activo');
+                document.getElementById('textoPaso').innerText = `Paso ${pasoActual} de ${totalPasos}`;
+                document.getElementById('btnSig').style.display = pasoActual === totalPasos ? 'none' : 'block';
+                document.getElementById('btnGuar').style.display = pasoActual === totalPasos ? 'block' : 'none';
+            }
+
+async function guardarDatos() {
+            const serial = document.getElementById('inp-1').value;
+            const idRegistro = parseInt(serial.split('-')[1]);
+            
+            let cuerpoDatos = {};
+
+            // Construimos el paquete de datos recolectando todas las casillas
+            if (modoActual === 'recepcion') {
+                cuerpoDatos = {
+                    fechaEnvio: document.getElementById('inp-2').value,
+                    nombreProveedor: document.getElementById('inp-3').value,
+                    nombreConductor: document.getElementById('inp-4').value,
+                    numeroConductor: document.getElementById('inp-5').value,
+                    placaConductor: document.getElementById('inp-6').value,
+                    toneladasEnviadas: parseFloat(document.getElementById('inp-7').value)
+                };
+            } else {
+                // AQUÍ ESTÁ LA MAGIA: Sin placa y llegando solo hasta inp-7
+                cuerpoDatos = {
+                    fechaDespacho: document.getElementById('inp-2').value,
+                    clienteDestino: document.getElementById('inp-3').value,
+                    nombreConductor: document.getElementById('inp-4').value,
+                    ciudadDestino: document.getElementById('inp-5').value,
+                    lote: document.getElementById('inp-6').value,
+                    toneladas: parseFloat(document.getElementById('inp-7').value)
+                };
+            }
+
+            const url = modoActual === 'recepcion' 
+                ? `http://localhost:8080/api/recepciones/${idRegistro}` 
+                : `http://localhost:8080/api/despachos/${idRegistro}`;
+
+            try {
+                const respuesta = await fetch(url, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(cuerpoDatos) 
+                });
+
+                if (respuesta.ok) {
+                    document.getElementById('formPasos').style.display = 'none';
+                    document.getElementById('mensajeExito').style.display = 'block';
+                    setTimeout(() => window.location.reload(), 1500); 
+                } else {
+                    // Magia de debugging: Leemos el error real que escupe Java
+                    const errorBackend = await respuesta.text();
+                    alert('Error del servidor: \n' + errorBackend);
+                    console.error("Detalle del error:", errorBackend);
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert('No se pudo conectar con el servidor.');
+            }
+        }
+
+            function cerrarModal() { 
+                document.getElementById('modalWizard').style.display = 'none'; 
+                document.getElementById('inp-1').disabled = true;
+            }
+            // Función para cargar los datos reales desde Java
+async function cargarRecepcionesReales() {
+            try {
+                const respuesta = await fetch('http://localhost:8080/api/recepciones');
+                const datos = await respuesta.json();
+                
+                const tabla = document.querySelector('#vista-recepcion table');
+                tabla.innerHTML = '<tr><th>Serial</th><th>Fecha</th><th>Proveedor</th><th>Conductor</th><th>N° Cond.</th><th>Placa</th><th>Toneladas</th><th>Acciones</th></tr>';
+                
+                datos.forEach((recepcion, index) => {
+                    const fila = `<tr>
+                        <td>REC-${(index + 1).toString().padStart(3, '0')}</td>
+                        <td>${recepcion.fechaEnvio}</td>
+                        <td>${recepcion.nombreProveedor}</td>
+                        <td>${recepcion.nombreConductor}</td>
+                        <td>${recepcion.numeroConductor}</td>
+                        <td>${recepcion.placaConductor}</td>
+                        <td>${recepcion.toneladasEnviadas}</td>
+                        <td><button class="btn-modificar" onclick="abrirModificacion('recepcion', ${recepcion.idRecepcion}, '${recepcion.fechaEnvio}', '${recepcion.nombreProveedor}', '${recepcion.nombreConductor}', '${recepcion.numeroConductor}', '${recepcion.placaConductor}', ${recepcion.toneladasEnviadas})">Modificar</button></td>
+                    </tr>`;
+                    tabla.innerHTML += fila;
+                });
+            } catch (error) {
+                console.error("Error conectando con la base de datos:", error);
+            }
+        }
+            
+            // Ejecutar la función automáticamente apenas se abra el Dashboard
+            document.addEventListener('DOMContentLoaded', cargarRecepcionesReales);
+            async function cargarDespachosReales() {
+                try {
+                    const respuesta = await fetch('http://localhost:8080/api/despachos');
+                    const datos = await respuesta.json();
+                    
+                    const tabla = document.querySelector('#vista-despacho table');
+                    tabla.innerHTML = '<tr><th>Serial</th><th>Fecha</th><th>Cliente</th><th>Chofer</th><th>Ciudad Destino</th><th>Lote</th><th>Toneladas</th><th>Acciones</th></tr>';
+                    
+                    datos.forEach((despacho, index) => {
+                        const fila = `<tr>
+                            <td>DES-${(index + 1).toString().padStart(3, '0')}</td>
+                            <td>${despacho.fechaDespacho}</td>
+                            <td>${despacho.clienteDestino}</td>
+                            <td>${despacho.nombreConductor}</td>
+                            <td>${despacho.ciudadDestino}</td>
+                            <td>${despacho.lote}</td>
+                            <td>${despacho.toneladas}</td>
+                            <td><button class="btn-modificar" onclick="abrirModificacion('despacho', ${despacho.idDespacho}, '${despacho.fechaDespacho}', '${despacho.clienteDestino}', '${despacho.nombreConductor}', '${despacho.ciudadDestino}', '${despacho.lote}', ${despacho.toneladas})">Modificar</button></td>
+                        </tr>`;
+                        tabla.innerHTML += fila;
+                    });
+                } catch (error) {
+                    console.error("Error conectando con los despachos:", error);
+                }
+            }
+            
+            // Función para calcular y actualizar el total en bodega
+        async function actualizarTotalBodega() {
+            try {
+                // 1. Traer datos de ambas tablas
+                const resRec = await fetch('http://localhost:8080/api/recepciones');
+                const recepciones = await resRec.json();
+                
+                const resDes = await fetch('http://localhost:8080/api/despachos');
+                const despachos = await resDes.json();
+                
+                // 2. Sumar todas las toneladas recibidas
+                let totalEntradas = 0;
+                recepciones.forEach(r => totalEntradas += r.toneladasEnviadas);
+                
+                // 3. Sumar todas las toneladas despachadas
+                let totalSalidas = 0;
+                despachos.forEach(d => totalSalidas += d.toneladas);
+                
+                // 4. Restar salidas de las entradas
+                let totalActual = totalEntradas - totalSalidas;
+                
+                // 5. Inyectar el resultado en el menú lateral con 2 decimales
+                document.getElementById('totalBodega').innerText = totalActual.toFixed(2) + " Ton";
+            } catch (error) {
+                console.error("Error calculando el total de bodega:", error);
+            }
+        }
+function abrirModificacion(modo, id, fecha, dato3, dato4, dato5, dato6, dato7) {
+            modoActual = modo;
+            pasoActual = 1;
+            document.getElementById('formPasos').style.display = 'block';
+            document.getElementById('mensajeExito').style.display = 'none';
+
+            if(modo === 'recepcion') {
+                totalPasos = 7;
+                document.getElementById('tituloWizard').innerText = "Modificar Recepción";
+                
+                document.getElementById('lbl-1').innerText = "ID / Serial";
+                document.getElementById('inp-1').value = `REC-${id.toString().padStart(3, '0')}`;
+                
+                document.getElementById('lbl-2').innerText = "Fecha";
+                document.getElementById('inp-2').value = fecha;
+                document.getElementById('inp-2').disabled = false; // Desbloqueado
+
+                document.getElementById('lbl-3').innerText = "Proveedor";
+                document.getElementById('inp-3').value = dato3;
+                document.getElementById('inp-3').disabled = false; // Desbloqueado
+
+                document.getElementById('lbl-4').innerText = "Nombre Conductor";
+                document.getElementById('inp-4').value = dato4;
+                document.getElementById('inp-4').disabled = false; // Desbloqueado
+
+                document.getElementById('lbl-5').innerText = "Número Conductor";
+                document.getElementById('inp-5').value = dato5;
+                document.getElementById('inp-5').disabled = false; // Desbloqueado
+
+                document.getElementById('lbl-6').innerText = "Placa";
+                document.getElementById('inp-6').value = dato6;
+                document.getElementById('inp-6').disabled = false; // Desbloqueado
+
+                document.getElementById('lbl-7').innerText = "Toneladas";
+                document.getElementById('inp-7').value = dato7;
+                document.getElementById('inp-7').disabled = false; 
+            } else {
+                totalPasos = 7;
+                document.getElementById('tituloWizard').innerText = "Modificar Despacho";
+                
+                document.getElementById('lbl-1').innerText = "ID / Serial";
+                document.getElementById('inp-1').value = `DES-${id.toString().padStart(3, '0')}`;
+
+                document.getElementById('lbl-2').innerText = "Fecha";
+                document.getElementById('inp-2').value = fecha;
+                document.getElementById('inp-2').disabled = false;
+
+                document.getElementById('lbl-3').innerText = "Cliente Destino";
+                document.getElementById('inp-3').value = dato3;
+                document.getElementById('inp-3').disabled = false;
+
+                document.getElementById('lbl-4').innerText = "Chofer";
+                document.getElementById('inp-4').value = dato4;
+                document.getElementById('inp-4').disabled = false;
+
+                document.getElementById('lbl-5').innerText = "Ciudad Destino";
+                document.getElementById('inp-5').value = dato5;
+                document.getElementById('inp-5').disabled = false; 
+
+                document.getElementById('lbl-6').innerText = "Lote";
+                document.getElementById('inp-6').value = dato6;
+                document.getElementById('inp-6').disabled = false; 
+
+                document.getElementById('lbl-7').innerText = "Toneladas";
+                document.getElementById('inp-7').value = dato7;
+                document.getElementById('inp-7').disabled = false; 
+            }
+            document.getElementById('modalWizard').style.display = 'flex';
+            actualizarVistaModal();
+        }
+            // Ejecutar también esta función al cargar la página
+            document.addEventListener('DOMContentLoaded', () => {
+                cargarRecepcionesReales();
+                cargarDespachosReales();
+                actualizarTotalBodega();
+            });
+            
+        </script>
+    </body>
+    </html>
