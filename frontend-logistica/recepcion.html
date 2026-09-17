@@ -79,7 +79,7 @@
 
             try {
                 // 2. Enviar los datos al Backend (Ajusta el puerto 8080 si usas otro)
-                const respuesta = await fetch('http://localhost:8080/api/recepciones', {
+                const respuesta = await fetch('https://api-bodega-dax6.onrender.com/api/recepciones', {
                     method: 'POST', // POST significa "Crear un nuevo registro"
                     headers: {
                         'Content-Type': 'application/json'

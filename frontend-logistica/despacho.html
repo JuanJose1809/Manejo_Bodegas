@@ -75,7 +75,7 @@
             };
 
             try {
-                const respuesta = await fetch('http://localhost:8080/api/despachos', {
+                const respuesta = await fetch('https://api-bodega-dax6.onrender.com/api/despachos', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(datosDespacho)

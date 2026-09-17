@@ -254,8 +254,8 @@ async function guardarDatos() {
             }
 
             const url = modoActual === 'recepcion' 
-                ? `http://localhost:8080/api/recepciones/${idRegistro}` 
-                : `http://localhost:8080/api/despachos/${idRegistro}`;
+                ? `https://api-bodega-dax6.onrender.com/api/recepciones/${idRegistro}` 
+                : `https://api-bodega-dax6.onrender.com/api/despachos/${idRegistro}`;
 
             try {
                 const respuesta = await fetch(url, {
@@ -285,9 +285,9 @@ async function guardarDatos() {
                 document.getElementById('inp-1').disabled = true;
             }
             // Función para cargar los datos reales desde Java
-async function cargarRecepcionesReales() {
+        async function cargarRecepcionesReales() {
             try {
-                const respuesta = await fetch('http://localhost:8080/api/recepciones');
+                const respuesta = await fetch('https://api-bodega-dax6.onrender.com/api/recepciones');
                 const datos = await respuesta.json();
                 
                 const tabla = document.querySelector('#vista-recepcion table');
@@ -315,7 +315,7 @@ async function cargarRecepcionesReales() {
             document.addEventListener('DOMContentLoaded', cargarRecepcionesReales);
             async function cargarDespachosReales() {
                 try {
-                    const respuesta = await fetch('http://localhost:8080/api/despachos');
+                    const respuesta = await fetch('https://api-bodega-dax6.onrender.com/api/despachos');
                     const datos = await respuesta.json();
                     
                     const tabla = document.querySelector('#vista-despacho table');
@@ -340,13 +340,13 @@ async function cargarRecepcionesReales() {
             }
             
             // Función para calcular y actualizar el total en bodega
-        async function actualizarTotalBodega() {
+async function actualizarTotalBodega() {
             try {
-                // 1. Traer datos de ambas tablas
-                const resRec = await fetch('http://localhost:8080/api/recepciones');
+                // 1. Traer datos de ambas tablas con los enlaces de la nube completos
+                const resRec = await fetch('https://api-bodega-dax6.onrender.com/api/recepciones');
                 const recepciones = await resRec.json();
                 
-                const resDes = await fetch('http://localhost:8080/api/despachos');
+                const resDes = await fetch('https://api-bodega-dax6.onrender.com/api/despachos');
                 const despachos = await resDes.json();
                 
                 // 2. Sumar todas las toneladas recibidas
